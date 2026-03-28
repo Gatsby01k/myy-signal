@@ -375,3 +375,109 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
     background: rgba(16, 18, 27, 0.92);
   }
 }
+
+
+/* === Cross-browser + layout hard fixes === */
+img, svg, video, canvas { max-width: 100%; height: auto; }
+.topbar, .hero, .hero-copy, .hero-card, .section-shell, .recognition, .recognition-side, .value-grid, .value-cards, .steps-grid, .trust-grid, .reviews-grid, .faq-grid, .pricing-grid, .manager-box, .modal-dialog, .quiz-progress-row {
+  min-width: 0;
+}
+.brand-block { flex: 0 1 auto; min-width: 0; }
+.brand-block > div { min-width: 0; }
+.brand-name, .brand-sub, .topbar-tg, .market-pill, .quiz-progress-text, .plan-price, .price, .section-title, h1, h2, h3, p, li, a, button, span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.topbar { background: rgba(7,8,13,0.72); }
+.topbar-actions {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.topbar-tg, .market-pill, .lang-switch { max-width: 100%; }
+.hero-card-top, .manager-box, .quiz-progress-row, .side-stat { min-width: 0; }
+.price { line-height: 1; }
+.modal { min-height: 100vh; min-height: 100dvh; }
+.modal-dialog {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+body.modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
+@supports (padding: max(0px)) {
+  .sticky-mobile-cta {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  .modal {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+@media (hover: none) {
+  .btn:hover,
+  .plan-select:hover,
+  .quiz-option:hover {
+    transform: none;
+  }
+}
+@media (max-width: 760px) {
+  .topbar {
+    gap: 12px;
+    padding-top: 14px;
+  }
+  .brand-block {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .brand-logo { flex: 0 0 48px; }
+  .topbar-actions {
+    width: 100%;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  .topbar-tg {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+  .market-pill {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .lang-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .lang-btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .hero-card-top,
+  .manager-box,
+  .side-stat {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 420px) {
+  .wrap {
+    width: min(calc(100% - 24px), var(--wrap));
+  }
+  .section-shell,
+  .hero-card,
+  .modal-dialog,
+  .final-panel,
+  .legal-shell {
+    padding: 18px;
+    border-radius: 20px;
+  }
+  .brand-name { font-size: 17px; }
+  .brand-sub { font-size: 12px; }
+  .hero-sub,
+  .section-sub,
+  .report-card p { font-size: 16px; }
+  .price { font-size: clamp(34px, 10vw, 42px); }
+}
