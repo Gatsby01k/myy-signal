@@ -383,6 +383,18 @@ const STORAGE_KEYS = {
   session: 'ms_session_id'
 };
 
+function safeStorageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function safeStorageSet(key, value) {
+  try { localStorage.setItem(key, value); } catch {}
+}
+
+function safeOn(element, eventName, handler) {
+  if (element) element.addEventListener(eventName, handler);
+}
+
 const modal = document.getElementById('quizModal');
 const screens = [...document.querySelectorAll('.quiz-screen')];
 const quizQuestion = document.getElementById('quizQuestion');
@@ -406,10 +418,10 @@ function q(name) {
 }
 
 function getSessionId() {
-  const stored = localStorage.getItem(STORAGE_KEYS.session);
+  const stored = safeStorageGet(STORAGE_KEYS.session);
   if (stored) return stored;
   const value = `ms-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  localStorage.setItem(STORAGE_KEYS.session, value);
+  safeStorageSet(STORAGE_KEYS.session, value);
   return value;
 }
 
@@ -422,11 +434,11 @@ function captureUtm() {
     if (value) next[key] = value;
   });
   if (Object.keys(next).length) {
-    localStorage.setItem(STORAGE_KEYS.utm, JSON.stringify(next));
+    safeStorageSet(STORAGE_KEYS.utm, JSON.stringify(next));
     return next;
   }
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.utm) || '{}');
+    return JSON.parse(safeStorageGet(STORAGE_KEYS.utm) || '{}');
   } catch {
     return {};
   }
@@ -473,7 +485,7 @@ function detectMarket() {
   const forced = q('market');
   if (forced && MARKET_CONFIG[forced.toUpperCase()]) return forced.toUpperCase();
 
-  const saved = localStorage.getItem(STORAGE_KEYS.market);
+  const saved = safeStorageGet(STORAGE_KEYS.market);
   if (saved && MARKET_CONFIG[saved]) return saved;
 
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
@@ -498,7 +510,7 @@ function detectMarket() {
 function detectLanguage() {
   const forced = q('lang');
   if (forced && supportedLangs.includes(forced)) return forced;
-  const saved = localStorage.getItem(STORAGE_KEYS.lang);
+  const saved = safeStorageGet(STORAGE_KEYS.lang);
   if (saved && supportedLangs.includes(saved)) return saved;
   const browser = (navigator.language || 'en').slice(0, 2).toLowerCase();
   if (supportedLangs.includes(browser)) return browser;
@@ -569,7 +581,7 @@ function updateUrlState() {
 function applyLanguage(lang, options = {}) {
   const previousLang = currentLang;
   currentLang = supportedLangs.includes(lang) ? lang : 'en';
-  localStorage.setItem(STORAGE_KEYS.lang, currentLang);
+  safeStorageSet(STORAGE_KEYS.lang, currentLang);
   document.documentElement.lang = currentLang;
   document.querySelectorAll('.lang-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.lang === currentLang));
   const dictionary = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
@@ -599,7 +611,7 @@ function applyLanguage(lang, options = {}) {
 
 function applyPricing() {
   const pricing = getPricing();
-  localStorage.setItem(STORAGE_KEYS.market, currentMarket);
+  safeStorageSet(STORAGE_KEYS.market, currentMarket);
   marketDisplay.textContent = pricing.label;
   document.querySelectorAll('[data-price]').forEach((el) => {
     const plan = el.dataset.price;
@@ -802,67 +814,89 @@ function updateEmailFallback() {
   copyPreviewStatus.textContent = getCopyDictionary().fallback.note;
 }
 
-window.addEventListener('load', () => {
+function hideLoader() {
+  const loader = document.getElementById('loader');
+  if (!loader || loader.classList.contains('hidden')) return;
+  loader.classList.add('hidden');
+}
+
+function bootAppEarly() {
   initAnalytics();
   captureUtm();
   currentMarket = detectMarket();
   currentLang = detectLanguage();
-  document.getElementById('year').textContent = new Date().getFullYear();
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
   initObservers();
   applyLanguage(currentLang, { silent: true });
   track('page_view', { page_path: window.location.pathname, referrer: document.referrer || '' });
   track('market_detected', { detected_market: currentMarket });
-  const loader = document.getElementById('loader');
-  setTimeout(() => loader.classList.add('hidden'), 800);
+}
+
+window.addEventListener('load', () => {
+  hideLoader();
 });
 
-document.querySelectorAll('.lang-btn').forEach((btn) => {
-  btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
-});
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+  });
 
-document.querySelectorAll('.js-open-quiz').forEach((btn) => btn.addEventListener('click', () => openQuiz(btn.dataset.analyticsSource || 'quiz_button')));
-document.getElementById('closeModal').addEventListener('click', closeQuiz);
-document.querySelector('[data-close-modal]').addEventListener('click', closeQuiz);
-document.getElementById('startQuiz').addEventListener('click', () => {
-  showScreen('questions');
-  renderQuestion();
-  track('quiz_start');
-});
-document.getElementById('openPlans').addEventListener('click', () => {
-  showScreen('plans');
-  track('plan_step_view');
-});
+  document.querySelectorAll('.js-open-quiz').forEach((btn) => btn.addEventListener('click', () => openQuiz(btn.dataset.analyticsSource || 'quiz_button')));
+  safeOn(document.getElementById('closeModal'), 'click', closeQuiz);
+  safeOn(document.querySelector('[data-close-modal]'), 'click', closeQuiz);
+  safeOn(document.getElementById('startQuiz'), 'click', () => {
+    showScreen('questions');
+    renderQuestion();
+    track('quiz_start');
+  });
+  safeOn(document.getElementById('openPlans'), 'click', () => {
+    showScreen('plans');
+    track('plan_step_view');
+  });
 
-document.querySelectorAll('.plan-select').forEach((button) => {
-  button.addEventListener('click', () => {
-    selectedPlan = button.dataset.plan;
-    renderPreview();
-    updateEmailFallback();
-    track('plan_select', { selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
+  document.querySelectorAll('.plan-select').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedPlan = button.dataset.plan;
+      renderPreview();
+      updateEmailFallback();
+      track('plan_select', { selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
+    });
+  });
+
+  document.querySelectorAll('.js-checkout').forEach((button) => {
+    button.addEventListener('click', () => {
+      const plan = button.dataset.plan;
+      track('telegram_click', { source: `pricing_${plan}`, selected_plan: plan, plan_price: getPricing().prices[plan] });
+      window.open(`https://t.me/${SITE_CONFIG.telegramHandle}?text=${buildTelegramMessage(plan)}`, '_blank', 'noopener');
+    });
+  });
+
+  [telegramCheckoutLink, telegramPreviewLink, ...managerDirectLinks].forEach((link) => {
+    if (!link) return;
+    link.addEventListener('click', () => {
+      track('telegram_click', { source: link.dataset.analyticsSource || link.id || 'telegram_link', selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
+    });
+  });
+
+  if (copyPreviewButton) copyPreviewButton.addEventListener('click', copyPreviewToClipboard);
+  if (emailFallbackLink) emailFallbackLink.addEventListener('click', () => {
+    if (emailFallbackLink.classList.contains('is-disabled')) return;
+    track('email_fallback_click', { selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('open')) closeQuiz();
+  });
+
+  bootAppEarly();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(hideLoader, 180);
+    });
   });
 });
 
-document.querySelectorAll('.js-checkout').forEach((button) => {
-  button.addEventListener('click', () => {
-    const plan = button.dataset.plan;
-    track('telegram_click', { source: `pricing_${plan}`, selected_plan: plan, plan_price: getPricing().prices[plan] });
-    window.open(`https://t.me/${SITE_CONFIG.telegramHandle}?text=${buildTelegramMessage(plan)}`, '_blank', 'noopener');
-  });
-});
-
-[telegramCheckoutLink, telegramPreviewLink, ...managerDirectLinks].forEach((link) => {
-  if (!link) return;
-  link.addEventListener('click', () => {
-    track('telegram_click', { source: link.dataset.analyticsSource || link.id || 'telegram_link', selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
-  });
-});
-
-if (copyPreviewButton) copyPreviewButton.addEventListener('click', copyPreviewToClipboard);
-if (emailFallbackLink) emailFallbackLink.addEventListener('click', () => {
-  if (emailFallbackLink.classList.contains('is-disabled')) return;
-  track('email_fallback_click', { selected_plan: selectedPlan, plan_price: getPricing().prices[selectedPlan] });
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && modal.classList.contains('open')) closeQuiz();
-});
+window.addEventListener('pageshow', hideLoader);
+setTimeout(hideLoader, 2500);
