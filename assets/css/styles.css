@@ -37,6 +37,33 @@ body {
 }
 a { color: inherit; }
 button { font: inherit; }
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.brand-block {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.brand-logo {
+  flex: 0 0 48px;
+}
+
+.brand-block > div {
+  min-width: 0;
+}
+
+.brand-name,
+.brand-sub,
+.topbar-tg,
+.market-pill strong {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .wrap { width: min(calc(100% - 32px), var(--wrap)); margin: 0 auto; }
 .orb {
   position: absolute; border-radius: 50%; pointer-events: none; filter: blur(40px); opacity: 0.42; z-index: 0; will-change: transform;
@@ -244,7 +271,22 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
   .steps-grid, .trust-grid, .reviews-grid, .faq-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 760px) {
-  .topbar, .brand-block, .topbar-actions, .section-head, .manager-box, .footer { flex-direction: column; align-items: stretch; }
+  .topbar, .section-head, .manager-box, .footer { flex-direction: column; align-items: stretch; }
+  .brand-block {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  .topbar-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .topbar-tg {
+    width: 100%;
+    text-align: center;
+  }
   .hero, .recognition, .value-grid, .value-cards, .steps-grid, .trust-grid, .reviews-grid, .faq-grid, .pricing-grid { grid-template-columns: 1fr; }
   .hero { min-height: auto; padding-top: 34px; }
   .recognition-list { grid-template-columns: 1fr; }
@@ -253,7 +295,7 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
   .quiz-header { top: 48px; }
   #quizQuestion { max-width: none; font-size: clamp(22px, 8vw, 30px); }
   .quiz-option { padding: 17px 16px; }
-  .sticky-mobile-cta { display: block; }
+  .sticky-mobile-cta { display: block; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
   .footer { padding-bottom: 110px; }
   .hero-actions .btn, .preview-actions .btn { width: 100%; }
 }
@@ -324,7 +366,8 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
 @media (max-width: 760px) {
   .market-pill { width: 100%; justify-content: space-between; }
   .topbar-actions { gap: 10px; }
-  .lang-switch { width: 100%; justify-content: center; }
+  .lang-switch { width: 100%; justify-content: center; flex-wrap: wrap; }
+  .lang-btn { flex: 1 1 46px; }
   .plan-select { min-height: 72px; }
 }
 
@@ -376,108 +419,30 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
   }
 }
 
+/* Cross-browser stability fixes */
+.topbar {
+  width: min(calc(100% - 32px), var(--wrap));
+}
 
-/* === Cross-browser + layout hard fixes === */
-img, svg, video, canvas { max-width: 100%; height: auto; }
-.topbar, .hero, .hero-copy, .hero-card, .section-shell, .recognition, .recognition-side, .value-grid, .value-cards, .steps-grid, .trust-grid, .reviews-grid, .faq-grid, .pricing-grid, .manager-box, .modal-dialog, .quiz-progress-row {
-  min-width: 0;
-}
-.brand-block { flex: 0 1 auto; min-width: 0; }
-.brand-block > div { min-width: 0; }
-.brand-name, .brand-sub, .topbar-tg, .market-pill, .quiz-progress-text, .plan-price, .price, .section-title, h1, h2, h3, p, li, a, button, span {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-.topbar { background: rgba(7,8,13,0.72); }
-.topbar-actions {
-  flex: 0 1 auto;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.topbar-tg, .market-pill, .lang-switch { max-width: 100%; }
-.hero-card-top, .manager-box, .quiz-progress-row, .side-stat { min-width: 0; }
-.price { line-height: 1; }
-.modal { min-height: 100vh; min-height: 100dvh; }
-.modal-dialog {
+.modal {
   overscroll-behavior: contain;
+}
+
+.modal-dialog {
   -webkit-overflow-scrolling: touch;
 }
-body.modal-open {
-  overflow: hidden;
-  touch-action: none;
-}
-@supports (padding: max(0px)) {
-  .sticky-mobile-cta {
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
+
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
   }
-  .modal {
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  .hero {
+    min-height: calc(100dvh - 90px);
   }
 }
-@media (hover: none) {
-  .btn:hover,
-  .plan-select:hover,
-  .quiz-option:hover {
-    transform: none;
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .modal-backdrop {
+    backdrop-filter: none;
   }
-}
-@media (max-width: 760px) {
-  .topbar {
-    gap: 12px;
-    padding-top: 14px;
-  }
-  .brand-block {
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-  }
-  .brand-logo { flex: 0 0 48px; }
-  .topbar-actions {
-    width: 100%;
-    align-items: stretch;
-    justify-content: stretch;
-  }
-  .topbar-tg {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-  }
-  .market-pill {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .lang-switch {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .lang-btn {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .hero-card-top,
-  .manager-box,
-  .side-stat {
-    align-items: flex-start;
-  }
-}
-@media (max-width: 420px) {
-  .wrap {
-    width: min(calc(100% - 24px), var(--wrap));
-  }
-  .section-shell,
-  .hero-card,
-  .modal-dialog,
-  .final-panel,
-  .legal-shell {
-    padding: 18px;
-    border-radius: 20px;
-  }
-  .brand-name { font-size: 17px; }
-  .brand-sub { font-size: 12px; }
-  .hero-sub,
-  .section-sub,
-  .report-card p { font-size: 16px; }
-  .price { font-size: clamp(34px, 10vw, 42px); }
 }
