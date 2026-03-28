@@ -15,8 +15,11 @@
   --wrap: 1180px;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; width: 100%; max-width: 100%; overflow-x: hidden; }
 body {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   background:
     radial-gradient(circle at 18% 20%, rgba(125,180,255,0.12), transparent 30%),
@@ -26,25 +29,30 @@ body {
   font-family: Inter, system-ui, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+@supports (overflow: clip) {
+  html, body { overflow-x: clip; }
 }
 a { color: inherit; }
 button { font: inherit; }
 .wrap { width: min(calc(100% - 32px), var(--wrap)); margin: 0 auto; }
 .orb {
-  position: fixed; border-radius: 50%; pointer-events: none; filter: blur(60px); opacity: 0.45; z-index: 0;
+  position: absolute; border-radius: 50%; pointer-events: none; filter: blur(40px); opacity: 0.42; z-index: 0; will-change: transform;
 }
-.orb-a { width: 280px; height: 280px; left: -60px; top: 10%; background: rgba(125,180,255,0.12); }
-.orb-b { width: 340px; height: 340px; right: -120px; top: 14%; background: rgba(152,117,255,0.16); }
+.orb-a { width: 280px; height: 280px; left: -30px; top: 10%; background: rgba(125,180,255,0.12); }
+.orb-b { width: 340px; height: 340px; right: -40px; top: 14%; background: rgba(152,117,255,0.16); }
 .orb-c { width: 260px; height: 260px; left: 50%; bottom: 8%; background: rgba(147,240,190,0.08); transform: translateX(-50%); }
 
 .loader {
   position: fixed; inset: 0; display: grid; place-items: center; background: rgba(7,8,13,0.94); z-index: 70;
-  transition: opacity .5s ease, visibility .5s ease;
+  transition: opacity .35s ease, visibility .35s ease;
 }
-.loader.hidden { opacity: 0; visibility: hidden; }
+.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-box {
-  width: min(92vw, 480px); background: var(--panel-strong); border: 1px solid var(--line); border-radius: 28px;
-  padding: 28px; box-shadow: var(--shadow); backdrop-filter: blur(22px);
+  width: min(92vw, 480px); background: rgba(15, 17, 24, 0.92); border: 1px solid var(--line); border-radius: 28px;
+  padding: 28px; box-shadow: var(--shadow); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
 }
 .loader-brand {
   font-family: "Space Grotesk", Inter, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 22px;
@@ -63,7 +71,7 @@ button { font: inherit; }
 .topbar, main, .footer { position: relative; z-index: 1; }
 .topbar {
   display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 18px 0 10px;
-  position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 30;
+  position: sticky; top: 0; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); z-index: 30;
 }
 .brand-block, .topbar-actions { display: flex; align-items: center; gap: 14px; }
 .brand-logo { width: 48px; height: 48px; object-fit: contain; border-radius: 14px; }
@@ -111,7 +119,7 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
 .btn-secondary { color: var(--text); background: rgba(255,255,255,0.05); border: 1px solid var(--line); }
 .hero-trust { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; color: var(--muted); font-size: 14px; }
 .hero-card, .section-shell, .modal-dialog {
-  background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); backdrop-filter: blur(20px);
+  background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
 }
 .hero-card {
   border-radius: var(--radius-xl); padding: 28px; min-height: 100%;
@@ -263,7 +271,7 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
   font-size: 13px;
 }
 .market-pill strong { color: var(--text); font-weight: 600; }
-.hero-card-note, .manager-box, .review-card, .trust-card, .faq-card, .pricing-card, .preview-point { backdrop-filter: blur(14px); }
+.hero-card-note, .manager-box, .review-card, .trust-card, .faq-card, .pricing-card, .preview-point { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .review-card span { display: block; margin-top: 14px; font-size: 14px; color: rgba(255,255,255,0.65); }
 .footer { align-items: center; }
 .footer a { color: inherit; }
@@ -346,4 +354,24 @@ h1 { font-size: clamp(42px, 7vw, 76px); line-height: 0.96; max-width: 760px; }
 
 @media (max-width: 760px) {
   .readiness-grid, .legal-links, .backup-actions { grid-template-columns: 1fr; }
+}
+
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .loader-box,
+  .topbar,
+  .hero-card,
+  .section-shell,
+  .modal-dialog,
+  .hero-card-note,
+  .manager-box,
+  .review-card,
+  .trust-card,
+  .faq-card,
+  .pricing-card,
+  .preview-point {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(16, 18, 27, 0.92);
+  }
 }
